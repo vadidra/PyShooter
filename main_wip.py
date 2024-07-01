@@ -10,6 +10,7 @@ from exit import Exit
 from explosion import Explosion
 from grenade import Grenade
 from health_bar import HealthBar
+from item_box import ItemBox
 from screen_fade import ScreenFade
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_TYPES, TILE_SIZE, BG, ROWS, COLS, GRAVITY, SCROLL_THRESH, BLACK, \
 	RED, GREEN, PINK, FPS, WHITE, MAX_LEVELS
@@ -363,13 +364,13 @@ class World():
 						enemy = Soldier('enemy', x * TILE_SIZE, y * TILE_SIZE, 1.65, 2, 20, 0)
 						enemy_group.add(enemy)
 					elif tile == 17:	# create ammo box
-						item_box = ItemBox('Ammo', x * TILE_SIZE, y * TILE_SIZE)
+						item_box = ItemBox('Ammo', x * TILE_SIZE, y * TILE_SIZE, item_boxes, screen_scroll)
 						item_box_group.add(item_box)
 					elif tile == 18:	# create grenade box
-						item_box = ItemBox('Grenade', x * TILE_SIZE, y * TILE_SIZE)
+						item_box = ItemBox('Grenade', x * TILE_SIZE, y * TILE_SIZE, item_boxes, screen_scroll)
 						item_box_group.add(item_box)
 					elif tile == 19:	# create health box
-						item_box = ItemBox('Health', x * TILE_SIZE, y * TILE_SIZE)
+						item_box = ItemBox('Health', x * TILE_SIZE, y * TILE_SIZE, item_boxes, screen_scroll)
 						item_box_group.add(item_box)
 					elif tile == 20:	# create exit
 						exit = Exit(img, x * TILE_SIZE, y * TILE_SIZE, screen_scroll)
@@ -381,31 +382,6 @@ class World():
 		for tile in self.obstacle_list:  # tile = (img, rect) ; rect = (left, top, width, height)
 			tile[1][0] += screen_scroll
 			screen.blit(tile[0], tile[1])
-
-class ItemBox(pygame.sprite.Sprite):
-	def __init__(self, item_type, x, y):
-		pygame.sprite.Sprite.__init__(self)
-		self.item_type = item_type
-		self.image = item_boxes[self.item_type]
-		self.rect = self.image.get_rect()
-		self.rect.midtop = (x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
- 
-	def update(self):
-		# scroll
-		self.rect.x += screen_scroll
-		# check if the player has picked up the box
-		if pygame.sprite.collide_rect(self, player):
-			# check what kind of box it was
-			if self.item_type == 'Health':
-				player.health += 25
-				if player.health > player.max_health:
-					player.health = player.max_health
-			elif self.item_type == 'Ammo':
-				player.ammo += 15
-			elif self.item_type == 'Grenade':
-				player.grenades += 3
-			# delete the item box
-			self.kill()
 
 # create screen fades
 intro_fade = ScreenFade(1, BLACK, 4)
@@ -476,7 +452,7 @@ while run:		# Game loop
 		bullet_group.update()
 		grenade_group.update()
 		explosion_group.update()
-		item_box_group.update()
+		item_box_group.update(player)
 		decoration_group.update()
 		water_group.update()
 		exit_group.update()
