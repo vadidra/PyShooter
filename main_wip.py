@@ -4,6 +4,7 @@ import os
 import random
 import csv
 import button
+from decoration import Decoration
 from exit import Exit
 from explosion import Explosion
 from health_bar import HealthBar
@@ -400,16 +401,6 @@ class World():
 			tile[1][0] += screen_scroll
 			screen.blit(tile[0], tile[1])
 
-class Decoration(pygame.sprite.Sprite):
-	def __init__(self, img, x, y):
-		pygame.sprite.Sprite.__init__(self)  # pygame.sprite.Sprite = Simple base class for visible game objects
-		self.image = img
-		self.rect = self.image.get_rect()
-		self.rect.midtop = (x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
-
-	def update(self):
-		self.rect.x += screen_scroll
-
 class ItemBox(pygame.sprite.Sprite):
 	def __init__(self, item_type, x, y):
 		pygame.sprite.Sprite.__init__(self)
@@ -592,7 +583,7 @@ while run:		# Game loop
 		grenade_group.update()
 		explosion_group.update(screen_scroll)
 		item_box_group.update()
-		decoration_group.update()
+		decoration_group.update(screen_scroll)
 		water_group.update(screen_scroll)
 		exit_group.update(screen_scroll)
 		bullet_group.draw(screen)
