@@ -4,8 +4,13 @@ import os
 import random
 import csv
 import button
+from exit import Exit
+from explosion import Explosion
+from health_bar import HealthBar
+from screen_fade import ScreenFade
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_TYPES, TILE_SIZE, BG, ROWS, COLS, GRAVITY, SCROLL_THRESH, BLACK, \
 	RED, GREEN, PINK, FPS, WHITE, MAX_LEVELS
+from water import Water
 
 mixer.init()
 pygame.init()
@@ -405,26 +410,6 @@ class Decoration(pygame.sprite.Sprite):
 	def update(self):
 		self.rect.x += screen_scroll
 
-class Water(pygame.sprite.Sprite):
-	def __init__(self, img, x, y):
-		pygame.sprite.Sprite.__init__(self)
-		self.image = img
-		self.rect = self.image.get_rect()
-		self.rect.midtop = (x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
-
-	def update(self):
-		self.rect.x += screen_scroll
-
-class Exit(pygame.sprite.Sprite):
-	def __init__(self, img, x, y):
-		pygame.sprite.Sprite.__init__(self)
-		self.image = img
-		self.rect = self.image.get_rect()
-		self.rect.midtop = (x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
-
-	def update(self):
-		self.rect.x += screen_scroll
-
 class ItemBox(pygame.sprite.Sprite):
 	def __init__(self, item_type, x, y):
 		pygame.sprite.Sprite.__init__(self)
@@ -449,22 +434,6 @@ class ItemBox(pygame.sprite.Sprite):
 				player.grenades += 3
 			# delete the item box
 			self.kill()
-
-class HealthBar():
-	def __init__(self, x, y, health, max_health):
-		self.x = x
-		self.y = y
-		self.health = health
-		self.max_health = max_health
-
-	def draw(self, health):
-		# update with new health
-		self.health = health
-		# calculate health ratio
-		ratio = self.health / self.max_health
-		pygame.draw.rect(screen, BLACK, (self.x - 2, self.y - 2, 154, 24))
-		pygame.draw.rect(screen, RED, (self.x, self.y, 150, 20))
-		pygame.draw.rect(screen, GREEN, (self.x, self.y, 150 * ratio, 20))
 
 class Bullet(pygame.sprite.Sprite):
 	def __init__(self, x, y, direction):
@@ -552,56 +521,6 @@ class Grenade(pygame.sprite.Sprite):
 					abs(self.rect.centery - enemy.rect.centery) < TILE_SIZE * 2:
 					enemy.health -= 50
 
-class Explosion(pygame.sprite.Sprite):
-	def __init__(self, x, y, scale):
-		pygame.sprite.Sprite.__init__(self)
-		self.images = []
-		for num in range(1, 6):
-			img = pygame.image.load(f'img/explosion/exp{num}.png').convert_alpha()
-			img = pygame.transform.scale(img, (int(img.get_width() * scale), int(img.get_height() * scale)))
-			self.images.append(img)
-		self.frame_index = 0
-		self.image = self.images[self.frame_index]
-		self.rect = self.image.get_rect()
-		self.rect.center = (x, y)
-		self.counter = 0
-
-	def update(self):
-		# scroll
-		self.rect.x += screen_scroll
-		EXPLOSION_SPEED = 4
-		# update explosion amimation
-		self.counter += 1
-		if self.counter >= EXPLOSION_SPEED:
-			self.counter = 0
-			self.frame_index += 1
-			# if the animation is complete then delete the explosion
-			if self.frame_index >= len(self.images):
-				self.kill()
-			else:
-				self.image = self.images[self.frame_index]
-
-class ScreenFade():
-	def __init__(self, direction, colour, speed):
-		self.direction = direction
-		self.colour = colour
-		self.speed = speed
-		self.fade_counter = 0
-
-	def fade(self):
-		fade_complete = False
-		self.fade_counter += self.speed
-		if self.direction == 1:		# whole screen fade
-			pygame.draw.rect(screen, self.colour, (0 - self.fade_counter, 0, SCREEN_WIDTH // 2, SCREEN_HEIGHT))
-			pygame.draw.rect(screen, self.colour, (SCREEN_WIDTH // 2 + self.fade_counter, 0, SCREEN_WIDTH, SCREEN_HEIGHT))
-			pygame.draw.rect(screen, self.colour, (0, 0 - self.fade_counter, SCREEN_WIDTH, SCREEN_HEIGHT // 2))
-			pygame.draw.rect(screen, self.colour, (0, SCREEN_HEIGHT // 2 + self.fade_counter, SCREEN_WIDTH, SCREEN_HEIGHT))
-		if self.direction == 2:		# vertical screen fade down
-			pygame.draw.rect(screen, self.colour, (0, 0, SCREEN_WIDTH, 0 + self.fade_counter))
-		if self.fade_counter >= SCREEN_WIDTH:
-			fade_complete = True
-
-		return fade_complete
 
 # create screen fades
 intro_fade = ScreenFade(1, BLACK, 4)
@@ -671,11 +590,11 @@ while run:		# Game loop
 		# update and draw groups
 		bullet_group.update()
 		grenade_group.update()
-		explosion_group.update()
+		explosion_group.update(screen_scroll)
 		item_box_group.update()
 		decoration_group.update()
-		water_group.update()
-		exit_group.update()
+		water_group.update(screen_scroll)
+		exit_group.update(screen_scroll)
 		bullet_group.draw(screen)
 		grenade_group.draw(screen)
 		explosion_group.draw(screen)
