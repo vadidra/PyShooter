@@ -4,12 +4,14 @@ import os
 import random
 import csv
 import button
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_TYPES, TILE_SIZE, BG, ROWS, COLS, GRAVITY, SCROLL_THRESH, BLACK, \
+	RED, GREEN, PINK, FPS, WHITE, MAX_LEVELS
 
 mixer.init()
 pygame.init()
 
-SCREEN_WIDTH = 1200
-SCREEN_HEIGHT = int(SCREEN_WIDTH * 0.5)
+# SCREEN_WIDTH = 1200
+# SCREEN_HEIGHT = int(SCREEN_WIDTH * 0.5)
 
 # Create a display surface object of specific dimension
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -19,17 +21,17 @@ pygame.display.set_caption('PyShooter - SamirPaul1')
 clock = pygame.time.Clock()
 # FPS (Frames Per Second): Frame rate is the measurement of how quickly a number of frames appears within a second. 
 # frequency at which consecutive images are captured or displayed.
-# set framerate
-FPS = 60
-
-# define game variables
-GRAVITY = 0.75
-SCROLL_THRESH = 200
-ROWS = 16
-COLS = 150
-TILE_SIZE = SCREEN_HEIGHT // ROWS
-TILE_TYPES = 21
-MAX_LEVELS = 3
+# # set framerate
+# FPS = 60
+#
+# # define game variables
+# GRAVITY = 0.75
+# SCROLL_THRESH = 200
+# ROWS = 16
+# COLS = 150
+# TILE_SIZE = SCREEN_HEIGHT // ROWS
+# TILE_TYPES = 21
+# MAX_LEVELS = 3
 screen_scroll = 0
 bg_scroll = 0
 level = 1
@@ -88,13 +90,13 @@ item_boxes = {
 	'Grenade'	: grenade_box_img
 }
 
-# define colours
-BG = (144, 201, 120)
-RED = (255, 0, 0)
-WHITE = (255, 255, 255)
-GREEN = (0, 255, 0)
-BLACK = (0, 0, 0)
-PINK = (235, 65, 54)
+# # define colours
+# BG = (144, 201, 120)
+# RED = (255, 0, 0)
+# WHITE = (255, 255, 255)
+# GREEN = (0, 255, 0)
+# BLACK = (0, 0, 0)
+# PINK = (235, 65, 54)
 
 # define font
 font = pygame.font.SysFont('Futura', 30)
