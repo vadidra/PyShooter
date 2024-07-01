@@ -4,9 +4,11 @@ import os
 import random
 import csv
 import button
+from bullet import Bullet
 from decoration import Decoration
 from exit import Exit
 from explosion import Explosion
+from grenade import Grenade
 from health_bar import HealthBar
 from screen_fade import ScreenFade
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_TYPES, TILE_SIZE, BG, ROWS, COLS, GRAVITY, SCROLL_THRESH, BLACK, \
@@ -16,28 +18,14 @@ from water import Water
 mixer.init()
 pygame.init()
 
-# SCREEN_WIDTH = 1200
-# SCREEN_HEIGHT = int(SCREEN_WIDTH * 0.5)
 
 # Create a display surface object of specific dimension
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption('PyShooter - SamirPaul1')
+pygame.display.set_caption('PyShooter - WIP')
 
 # Creating a new clock object to track the amount of time
 clock = pygame.time.Clock()
-# FPS (Frames Per Second): Frame rate is the measurement of how quickly a number of frames appears within a second. 
-# frequency at which consecutive images are captured or displayed.
-# # set framerate
-# FPS = 60
-#
-# # define game variables
-# GRAVITY = 0.75
-# SCROLL_THRESH = 200
-# ROWS = 16
-# COLS = 150
-# TILE_SIZE = SCREEN_HEIGHT // ROWS
-# TILE_TYPES = 21
-# MAX_LEVELS = 3
+
 screen_scroll = 0
 bg_scroll = 0
 level = 1
@@ -96,13 +84,6 @@ item_boxes = {
 	'Grenade'	: grenade_box_img
 }
 
-# # define colours
-# BG = (144, 201, 120)
-# RED = (255, 0, 0)
-# WHITE = (255, 255, 255)
-# GREEN = (0, 255, 0)
-# BLACK = (0, 0, 0)
-# PINK = (235, 65, 54)
 
 # define font
 font = pygame.font.SysFont('Futura', 30)
@@ -277,7 +258,7 @@ class Soldier(pygame.sprite.Sprite):
 		if self.shoot_cooldown == 0 and self.ammo > 0:
 			self.shoot_cooldown = 20
 			# centerx is the center of the Rect along the x axis and centery is the center of the Rect along the y axis.
-			bullet = Bullet(self.rect.centerx + (0.75 * self.rect.size[0] * self.direction), self.rect.centery, self.direction)
+			bullet = Bullet(self.rect.centerx + (0.75 * self.rect.size[0] * self.direction), self.rect.centery, self.direction, bullet_img, world.obstacle_list, screen_scroll, player, bullet_group, enemy_group)
 			bullet_group.add(bullet)
 			# reduce ammo
 			self.ammo -= 1
@@ -426,93 +407,6 @@ class ItemBox(pygame.sprite.Sprite):
 			# delete the item box
 			self.kill()
 
-class Bullet(pygame.sprite.Sprite):
-	def __init__(self, x, y, direction):
-		pygame.sprite.Sprite.__init__(self)
-		self.speed = 10
-		self.image = bullet_img
-		self.rect = self.image.get_rect()
-		self.rect.center = (x, y)
-		self.direction = direction
-
-	def update(self):
-		# move bullet
-		self.rect.x += (self.direction * self.speed) + screen_scroll
-		# check if bullet has gone off screen
-		if self.rect.right < 0 or self.rect.left > SCREEN_WIDTH:
-			self.kill()
-		# check for collision with level
-		for tile in world.obstacle_list:
-			if tile[1].colliderect(self.rect):
-				self.kill()
-		# check collision with characters
-		if pygame.sprite.spritecollide(player, bullet_group, False):
-			if player.alive:
-				player.health -= 5
-				self.kill()
-		for enemy in enemy_group:
-			if pygame.sprite.spritecollide(enemy, bullet_group, False):
-				if enemy.alive:
-					enemy.health -= 25
-					self.kill()
-
-class Grenade(pygame.sprite.Sprite):
-	def __init__(self, x, y, direction):
-		pygame.sprite.Sprite.__init__(self)
-		self.timer = 100
-		self.vel_y = -11
-		self.speed = 7
-		self.image = grenade_img
-		self.rect = self.image.get_rect()
-		self.rect.center = (x, y)
-		self.width = self.image.get_width()
-		self.height = self.image.get_height()
-		self.direction = direction
-
-	def update(self):
-		self.vel_y += GRAVITY
-		dx = self.direction * self.speed
-		dy = self.vel_y
-
-		# check for collision with level
-		for tile in world.obstacle_list:
-			# check collision with walls
-			if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
-				self.direction *= -1
-				dx = self.direction * self.speed
-			# check for collision in the y direction
-			if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
-				self.speed = 0
-				# check if below the ground, i.e. thrown up
-				if self.vel_y < 0:
-					self.vel_y = 0
-					dy = tile[1].bottom - self.rect.top
-				# check if above the ground, i.e. falling
-				elif self.vel_y >= 0:
-					self.vel_y = 0
-					dy = tile[1].top - self.rect.bottom	
-
-		# update grenade position
-		self.rect.x += dx + screen_scroll
-		self.rect.y += dy
-
-		# countdown timer 
-		self.timer -= 1
-		if self.timer <= 0:
-			self.kill()
-			grenade_fx.play()
-			explosion = Explosion(self.rect.x, self.rect.y, 0.5, screen_scroll)
-			explosion_group.add(explosion)
-			# do damage to anyone that is nearby
-			if abs(self.rect.centerx - player.rect.centerx) < TILE_SIZE * 2 and \
-				abs(self.rect.centery - player.rect.centery) < TILE_SIZE * 2:
-				player.health -= 50
-			for enemy in enemy_group:
-				if abs(self.rect.centerx - enemy.rect.centerx) < TILE_SIZE * 2 and \
-					abs(self.rect.centery - enemy.rect.centery) < TILE_SIZE * 2:
-					enemy.health -= 50
-
-
 # create screen fades
 intro_fade = ScreenFade(1, BLACK, 4)
 death_fade = ScreenFade(2, PINK, 4)
@@ -607,8 +501,10 @@ while run:		# Game loop
 				player.shoot()
 			# throw grenades
 			elif grenade and grenade_thrown == False and player.grenades > 0:
-				grenade = Grenade(player.rect.centerx + (0.5 * player.rect.size[0] * player.direction),\
-				 			player.rect.top, player.direction)
+				grenade = Grenade(player.rect.centerx + (0.5 * player.rect.size[0] * player.direction),
+				 			player.rect.top, player.direction, grenade_img, grenade_fx, world.obstacle_list,
+								  screen_scroll, player, explosion_group, enemy_group
+								  )
 				grenade_group.add(grenade)
 				# reduce grenades
 				player.grenades -= 1
