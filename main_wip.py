@@ -370,10 +370,10 @@ class World():
 					if tile >= 0 and tile <= 8:
 						self.obstacle_list.append(tile_data)
 					elif tile >= 9 and tile <= 10:
-						water = Water(img, x * TILE_SIZE, y * TILE_SIZE)
+						water = Water(img, x * TILE_SIZE, y * TILE_SIZE, screen_scroll)
 						water_group.add(water)
 					elif tile >= 11 and tile <= 14:
-						decoration = Decoration(img, x * TILE_SIZE, y * TILE_SIZE)
+						decoration = Decoration(img, x * TILE_SIZE, y * TILE_SIZE, screen_scroll)
 						decoration_group.add(decoration)
 					elif tile == 15:	# create player
 						player = Soldier('player', x * TILE_SIZE, y * TILE_SIZE, 1.65, 5, 20, 5)
@@ -391,7 +391,7 @@ class World():
 						item_box = ItemBox('Health', x * TILE_SIZE, y * TILE_SIZE)
 						item_box_group.add(item_box)
 					elif tile == 20:	# create exit
-						exit = Exit(img, x * TILE_SIZE, y * TILE_SIZE)
+						exit = Exit(img, x * TILE_SIZE, y * TILE_SIZE, screen_scroll)
 						exit_group.add(exit)
 
 		return player, health_bar
@@ -583,9 +583,9 @@ while run:		# Game loop
 		grenade_group.update()
 		explosion_group.update()
 		item_box_group.update()
-		decoration_group.update(screen_scroll)
-		water_group.update(screen_scroll)
-		exit_group.update(screen_scroll)
+		decoration_group.update()
+		water_group.update()
+		exit_group.update()
 		bullet_group.draw(screen)
 		grenade_group.draw(screen)
 		explosion_group.draw(screen)
