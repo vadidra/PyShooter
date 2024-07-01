@@ -501,7 +501,7 @@ class Grenade(pygame.sprite.Sprite):
 		if self.timer <= 0:
 			self.kill()
 			grenade_fx.play()
-			explosion = Explosion(self.rect.x, self.rect.y, 0.5)
+			explosion = Explosion(self.rect.x, self.rect.y, 0.5, screen_scroll)
 			explosion_group.add(explosion)
 			# do damage to anyone that is nearby
 			if abs(self.rect.centerx - player.rect.centerx) < TILE_SIZE * 2 and \
@@ -581,7 +581,7 @@ while run:		# Game loop
 		# update and draw groups
 		bullet_group.update()
 		grenade_group.update()
-		explosion_group.update(screen_scroll)
+		explosion_group.update()
 		item_box_group.update()
 		decoration_group.update(screen_scroll)
 		water_group.update(screen_scroll)

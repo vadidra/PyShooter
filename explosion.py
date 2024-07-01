@@ -1,7 +1,7 @@
 import pygame
 
 class Explosion(pygame.sprite.Sprite):
-	def __init__(self, x, y, scale):
+	def __init__(self, x, y, scale, screen_scroll):
 		pygame.sprite.Sprite.__init__(self)
 		self.images = []
 		for num in range(1, 6):
@@ -13,10 +13,11 @@ class Explosion(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect()
 		self.rect.center = (x, y)
 		self.counter = 0
+		self.screen_scroll = screen_scroll
 
-	def update(self, screen_scroll):
+	def update(self):
 		# scroll
-		self.rect.x += screen_scroll
+		self.rect.x += self.screen_scroll
 		EXPLOSION_SPEED = 4
 		# update explosion amimation
 		self.counter += 1
